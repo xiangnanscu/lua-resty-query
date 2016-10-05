@@ -18,11 +18,18 @@ else
     ngx.print(encode(res))
 end
 
-local res, err = single_query "select * from user where id=1;select * from user where id=2;"
-if not res then
+local res_list, err = single_query "select * from user where id=1;select * from user where id=2;"
+if not res_list then
     ngx.print(err)
 else
-    ngx.print(encode(res))
+    for res, err in res_list do
+        if not res then
+            ngx.print(err)
+        else
+            ngx.print(encode(res))
+        end
+    end
 end
+
 
 ```
