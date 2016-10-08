@@ -8,7 +8,6 @@ local IDLE_TIMEOUT = 10000
 local POOL_SIZE = 50
 
 local function single(statement, rows)
-    loger(statement)
     local db, err = client:new()
     if not db then
         return nil, err

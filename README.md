@@ -3,7 +3,7 @@
 convenient wrapper for lua-resty-mysql
 
 # Requirements
-Same as [lua-resty-mysql](https://github.com/openresty/lua-resty-mysql)
+Same as [lua-resty-mysql](https://github.com/openresty/lua-resty-mysql).
 
 # Synopsis
 ```
