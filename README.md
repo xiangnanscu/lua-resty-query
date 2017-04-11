@@ -18,7 +18,7 @@ else
     ngx.print(encode(res))
 end
 
-local res_list, err = single_query "select * from user where id=1;select * from user where id=2;"
+local res_list, err = multi_query "select * from user where id=1;select * from user where id=2;"
 if not res_list then
     ngx.print(err)
 else
