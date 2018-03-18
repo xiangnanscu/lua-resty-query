@@ -2,7 +2,8 @@
 Wrapper for querying mysql and postgresql database in Openresty. Just config database -> Give sql string -> get data
 
 # Requirements
-Same as [lua-resty-mysql](https://github.com/openresty/lua-resty-mysql) or [pgmoon](https://github.com/leafo/pgmoon)
+- [lua-resty-mysql](https://github.com/openresty/lua-resty-mysql)
+- [pgmoon](https://github.com/leafo/pgmoon)
 
 # Synopsis
 ```
