@@ -1,35 +1,26 @@
 # lua-resty-query
-
-convenient wrapper for lua-resty-mysql
+Wrapper for querying mysql and postgresql database in Openresty. Just config database -> Give sql string -> get data
 
 # Requirements
-Same as [lua-resty-mysql](https://github.com/openresty/lua-resty-mysql).
+Same as [lua-resty-mysql](https://github.com/openresty/lua-resty-mysql) or [pgmoon](https://github.com/leafo/pgmoon)
 
 # Synopsis
 ```
-local single_query = require"lua.resty.query".single
-local multi_query = require"lua.resty.query".multiple
-local encode = require"cjson".encode
+local Query = require"resty.query".postgresql
 
-local res, err = single_query "select * from user;"
-if not res then
-    ngx.print(err)
-else
-    ngx.print(encode(res))
+-- config your database and get a query function
+local query = Query{
+    HOST = 'localhost',
+    PORT = 5432,
+    USER = 'postgres',
+    PASSWORD = '111111',
+    DATABASE = 'test',
+    POOL_SIZE = 50,
+}
+-- now use this function in your controllers
+local res, err = query('select * from "user"')
+if err then
+    return err
 end
-
-local res_list, err = multi_query "select * from user where id=1;select * from user where id=2;"
-if not res_list then
-    ngx.print(err)
-else
-    for res, err in res_list do
-        if not res then
-            ngx.print(err)
-        else
-            ngx.print(encode(res))
-        end
-    end
-end
-
 
 ```
