@@ -5,7 +5,7 @@ local setmetatable = setmetatable
 local table_concat = table.concat
 local string_format = string.format
 
-version = "2.0"
+local version = "2.0"
 
 local CONNECT_TIMEOUT = 1000
 local MAX_IDLE_TIMEOUT = 10000

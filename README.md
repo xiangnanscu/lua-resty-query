@@ -6,7 +6,7 @@ Same as [lua-resty-mysql](https://github.com/openresty/lua-resty-mysql) or [pgmo
 
 # Synopsis
 ```
-local Query = require"resty.query".postgresql
+local Query = require"resty.query.postgresql"
 
 -- config your database and get a query function
 local query = Query{
