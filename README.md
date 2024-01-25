@@ -11,11 +11,11 @@ local Query = require"resty.query"
 
 -- config your database and get a query function
 local query = Query {
-  PGHOST = 'localhost',
-  PGPORT = 5432,
-  PGUSER = 'postgres',
-  PGPASSWORD = 'XXXXXX',
-  PGDATABASE = 'test',
+  HOST = 'localhost',
+  PORT = 5432,
+  USER = 'postgres',
+  PASSWORD = 'XXXXXX',
+  DATABASE = 'test',
   POOL_SIZE = 50,
 }
 -- now use this function in your controllers
