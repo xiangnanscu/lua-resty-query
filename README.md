@@ -1,27 +1,26 @@
 # lua-resty-query
-Wrapper for querying mysql and postgresql database in Openresty. Just config database -> Give sql string -> get data
+convenient wrapper for pgmoon
 
 # Requirements
-- [lua-resty-mysql](https://github.com/openresty/lua-resty-mysql)
-- [pgmoon](https://github.com/leafo/pgmoon)
+- [lua-resty-dotenv](https://github.com/xiangnanscu/lua-resty-dotenv)
+- [pgmoon](https://github.com/xiangnanscu/pgmoon)
 
 # Synopsis
-```
-local Query = require"resty.query.postgresql"
+```lua
+local Query = require"resty.query"
 
 -- config your database and get a query function
-local query = Query{
-    HOST = 'localhost',
-    PORT = 5432,
-    USER = 'postgres',
-    PASSWORD = '111111',
-    DATABASE = 'test',
-    POOL_SIZE = 50,
+local query = Query {
+  PGHOST = 'localhost',
+  PGPORT = 5432,
+  PGUSER = 'postgres',
+  PGPASSWORD = 'XXXXXX',
+  PGDATABASE = 'test',
+  POOL_SIZE = 50,
 }
 -- now use this function in your controllers
-local res, err = query('select * from "user"')
-if err then
-    return err
+local res, err = query('select * from usr')
+if res == nil then
+  return err
 end
-
 ```
