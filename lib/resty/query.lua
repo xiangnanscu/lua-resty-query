@@ -6,7 +6,7 @@ local string_format = string.format
 
 ---@class QueryOpts
 ---@field HOST? string
----@field PORT? number
+---@field PORT? number|string
 ---@field USER? string
 ---@field DATABASE? string
 ---@field PASSWORD? string
@@ -41,7 +41,6 @@ local function get_connect_table(options)
 end
 
 ---@param options QueryOpts
----@return fun(statement: string|table, compact?: boolean):table?, string|number?
 local function Query(options)
   options = options or {}
   local db_connect_table = get_connect_table(options)
@@ -52,7 +51,7 @@ local function Query(options)
   ---@param compact? boolean
   ---@return table?, string|number?
   local function sql_query(statement, compact)
-    -- xodel(db_connect_table)
+    -- loger(db_connect_table)
     local db, ok, err, a, b
     if type(statement) == 'table' then
       if type(statement.statement) == 'function' then
