@@ -1,5 +1,15 @@
-local pgmoon        = require "pgmoon"
-local env           = require "resty.dotenv".getenv
+local pgmoon = require "pgmoon"
+local env
+do
+  local ok, dotenv = pcall(require, "resty.dotenv")
+  if ok then
+    env = dotenv.getenv
+  else
+    env = function(key)
+    end
+  end
+end
+
 local type          = type
 local table_concat  = table.concat
 local string_format = string.format
@@ -41,6 +51,7 @@ local function get_connect_table(options)
 end
 
 ---@param options QueryOpts
+---@return fun(statement: string|table, compact?: boolean):table?, string|number?
 local function Query(options)
   options = options or {}
   local db_connect_table = get_connect_table(options)
@@ -51,7 +62,6 @@ local function Query(options)
   ---@param compact? boolean
   ---@return table?, string|number?
   local function sql_query(statement, compact)
-    -- loger(db_connect_table)
     local db, ok, err, a, b
     if type(statement) == 'table' then
       if type(statement.statement) == 'function' then
@@ -92,14 +102,11 @@ local function Query(options)
     -- result, num_queries, notifications
     db.compact = compact
     a, b = db:query(statement)
-    if env("DEBUG_SQL") == 'on' then
-      print(statement)
-    end
-    if options.DEBUG then
-      if type(options.DEBUG) ~= 'function' then
+    if db_connect_table.debug then
+      if type(db_connect_table.debug) ~= 'function' then
         print(statement)
       else
-        options.DEBUG(statement)
+        db_connect_table.debug(statement)
       end
     end
     if db.sock_type == "nginx" then
