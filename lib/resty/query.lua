@@ -54,10 +54,10 @@ end
 ---@return fun(statement: string|table, compact?: boolean):table?, string|number?
 local function Query(options)
   options = options or {}
-  local db_connect_table = get_connect_table(options)
-  local connect_timeout = db_connect_table.connect_timeout
-  local max_idle_timeout = db_connect_table.max_idle_timeout
-  local pool_size = db_connect_table.pool_size
+  local connection_options = get_connect_table(options)
+  local connect_timeout = connection_options.connect_timeout
+  local max_idle_timeout = connection_options.max_idle_timeout
+  local pool_size = connection_options.pool_size
   ---@param statement string|table
   ---@param compact? boolean
   ---@return table?, string|number?
@@ -91,7 +91,7 @@ local function Query(options)
         return nil, "empty table passed to query"
       end
     end
-    db = pgmoon.new(db_connect_table)
+    db = pgmoon.new(connection_options)
     db:settimeout(connect_timeout)
     ok, err = db:connect()
     if not ok then
@@ -102,11 +102,11 @@ local function Query(options)
     -- result, num_queries, notifications
     db.compact = compact
     a, b = db:query(statement)
-    if db_connect_table.debug then
-      if type(db_connect_table.debug) ~= 'function' then
+    if connection_options.debug then
+      if type(connection_options.debug) ~= 'function' then
         print(statement)
       else
-        db_connect_table.debug(statement)
+        connection_options.debug(statement)
       end
     end
     if db.sock_type == "nginx" then
