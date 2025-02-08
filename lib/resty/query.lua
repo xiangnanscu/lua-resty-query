@@ -1,18 +1,17 @@
 local pgmoon = require "pgmoon"
-local env
+local ENV_CONFIG
 do
   local ok, dotenv = pcall(require, "resty.dotenv")
   if ok then
-    env = dotenv.getenv
+    ENV_CONFIG = dotenv('.env')
   else
-    env = function(key)
-    end
+    ENV_CONFIG = {}
   end
 end
-
 local type          = type
 local table_concat  = table.concat
 local string_format = string.format
+
 
 ---@class QueryOpts
 ---@field HOST? string
@@ -34,19 +33,18 @@ local string_format = string.format
 ---@return table
 local function get_connect_table(options)
   return {
-    host = options.HOST or env "PGHOST" or "127.0.0.1",
-    port = options.PORT or env "PGPORT" or 5432,
-    database = options.DATABASE or env "PGDATABASE" or "",
-    user = options.USER or env "PGUSER" or "",
-    password = options.PASSWORD or env "PGPASSWORD" or "",
-    ssl = options.SSL or env "PG_SSL" or false,
-    ssl_verify = options.SSL_VERIFY or env "PG_SSL_VERIFY" or nil,
-    ssl_required = options.SSL_REQUIRED or env "PG_SSL_REQUIRED" or nil,
-    pool = options.POOL or env "PG_POOL" or nil,
-    pool_size = options.POOL_SIZE or env "PG_POOL_SIZE" or 100,
-    connect_timeout = options.CONNECT_TIMEOUT or env "PG_CONNECT_TIMEOUT" or 10000,
-    max_idle_timeout = options.MAX_IDLE_TIMEOUT or env "PG_MAX_IDLE_TIMEOUT" or 10000,
-    debug = options.DEBUG,
+    host = options.HOST or ENV_CONFIG.PGHOST or "127.0.0.1",
+    port = options.PORT or tonumber(ENV_CONFIG.PGPORT) or 5432,
+    database = options.DATABASE or ENV_CONFIG.PGDATABASE or "",
+    user = options.USER or ENV_CONFIG.PGUSER or "",
+    password = options.PASSWORD or ENV_CONFIG.PGPASSWORD or "",
+    ssl = options.SSL or ENV_CONFIG.PG_SSL == "true" or false,
+    ssl_verify = options.SSL_VERIFY or ENV_CONFIG.PG_SSL_VERIFY or nil,
+    ssl_required = options.SSL_REQUIRED or ENV_CONFIG.PG_SSL_REQUIRED or nil,
+    pool = options.POOL or ENV_CONFIG.PG_POOL or nil,
+    pool_size = options.POOL_SIZE or tonumber(ENV_CONFIG.PG_POOL_SIZE) or 100,
+    connect_timeout = options.CONNECT_TIMEOUT or tonumber(ENV_CONFIG.PG_CONNECT_TIMEOUT) or 10000,
+    max_idle_timeout = options.MAX_IDLE_TIMEOUT or tonumber(ENV_CONFIG.PG_MAX_IDLE_TIMEOUT) or 10000,
   }
 end
 
@@ -54,10 +52,10 @@ end
 ---@return fun(statement: string|table, compact?: boolean):table?, string|number?
 local function Query(options)
   options = options or {}
-  local connection_options = get_connect_table(options)
-  local connect_timeout = connection_options.connect_timeout
-  local max_idle_timeout = connection_options.max_idle_timeout
-  local pool_size = connection_options.pool_size
+  local connect_table = get_connect_table(options)
+  local connect_timeout = connect_table.connect_timeout
+  local max_idle_timeout = connect_table.max_idle_timeout
+  local pool_size = connect_table.pool_size
   ---@param statement string|table
   ---@param compact? boolean
   ---@return table?, string|number?
@@ -72,26 +70,31 @@ local function Query(options)
       elseif statement[1] then
         local statements = {}
         for _, query in ipairs(statement) do
+          local stmt_to_add = nil
           if type(query) == 'string' then
-            if query ~= "" then
-              statements[#statements + 1] = query
-            end
+            stmt_to_add = query
           elseif type(query) == 'table' and type(query.statement) == 'function' then
-            local substatement, err = query:statement()
-            if substatement == nil then
+            stmt_to_add, err = query:statement()
+            if stmt_to_add == nil then
               return nil, err
             end
-            statements[#statements + 1] = substatement
           else
             return nil, string_format("invalid type '%s' for statements passing to query", type(query))
           end
+
+          if stmt_to_add and stmt_to_add ~= "" then
+            statements[#statements + 1] = stmt_to_add
+          end
         end
         statement = table_concat(statements, ";")
+        if statement == "" then
+          return nil, "empty statements after processing table input"
+        end
       else
-        return nil, "empty table passed to query"
+        return nil, "invalid table format passed to query"
       end
     end
-    db = pgmoon.new(connection_options)
+    db = pgmoon.new(connect_table)
     db:settimeout(connect_timeout)
     ok, err = db:connect()
     if not ok then
@@ -102,11 +105,11 @@ local function Query(options)
     -- result, num_queries, notifications
     db.compact = compact
     a, b = db:query(statement)
-    if connection_options.debug then
-      if type(connection_options.debug) ~= 'function' then
+    if options.DEBUG then
+      if type(options.DEBUG) ~= 'function' then
         print(statement)
       else
-        connection_options.debug(statement)
+        options.DEBUG(statement)
       end
     end
     if db.sock_type == "nginx" then
