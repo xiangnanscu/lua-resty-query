@@ -3,7 +3,7 @@ local ENV_CONFIG
 do
   local ok, dotenv = pcall(require, "resty.dotenv")
   if ok then
-    ENV_CONFIG = dotenv('.env')
+    ENV_CONFIG = dotenv { '.env' }
   else
     ENV_CONFIG = {}
   end
@@ -26,7 +26,7 @@ local string_format = string.format
 ---@field POOL? string
 ---@field SSL_REQUIRED? boolean
 ---@field SSL_VERIFY? any
----@field DEBUG? boolean|function
+---@field debug? function a function that will be called with the final generated statement
 
 
 ---@param options QueryOpts
@@ -105,12 +105,8 @@ local function Query(options)
     -- result, num_queries, notifications
     db.compact = compact
     a, b = db:query(statement)
-    if options.DEBUG then
-      if type(options.DEBUG) ~= 'function' then
-        print(statement)
-      else
-        options.DEBUG(statement)
-      end
+    if options.debug then
+      options.debug(statement)
     end
     if db.sock_type == "nginx" then
       if a ~= nil then
